@@ -1,0 +1,14 @@
+{
+  "name": "plex",
+  "version": "0.1.0",
+  "description": "PL/SQL Language Lexer",
+  "author" : "Štefan Oravec <stefan.oravec@me.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/s-oravec/plex.git"
+  },
+  "keywords": [
+    "PL/SQL", "Lexer", "Language", "Token", "Tokenizer", "Oracle"
+  ]
+}
