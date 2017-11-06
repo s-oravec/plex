@@ -79,7 +79,7 @@ create or replace package plex as
     tk_IS         CONSTANT token_type := 'IS';
     tk_LIKE       CONSTANT token_type := 'LIKE';
     tk_LOCK       CONSTANT token_type := 'LOCK';
-    --tk_MINUS      CONSTANT token_type := 'MINUS';
+    tk_MINUS      CONSTANT token_type := 'MINUS';
     tk_MODE       CONSTANT token_type := 'MODE';
     tk_NOCOMPRESS CONSTANT token_type := 'NOCOMPRESS';
     tk_NOT        CONSTANT token_type := 'NOT';
@@ -129,7 +129,7 @@ create or replace package plex as
     tk_MERGE    CONSTANT token_type := 'MERGE';
     tk_OPEN     CONSTANT token_type := 'OPEN';
     tk_PACKAGE  CONSTANT token_type := 'PACKAGE';
-    --tk_PIPE     CONSTANT token_type := 'PIPE';
+    tk_PIPE     CONSTANT token_type := 'PIPE';
     tk_PRAGMA   CONSTANT token_type := 'PRAGMA';
     tk_RAISE    CONSTANT token_type := 'RAISE';
     tk_WHILE    CONSTANT token_type := 'WHILE';
