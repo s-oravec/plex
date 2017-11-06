@@ -5,7 +5,7 @@ CREATE OR REPLACE Type BODY plex_matcher AS
         l_matchedToken plex_token;
     BEGIN
         IF plex_lexer.eof THEN
-            RETURN new plex_token(plex_lexer.tk_EOF);
+            RETURN new plex_token(plex.tk_EOF);
         END IF;
         plex_lexer.takeSnapshot;
         l_matchedToken := isMatchImpl();

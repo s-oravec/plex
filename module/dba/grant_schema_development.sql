@@ -9,9 +9,22 @@ grant create procedure to &&l_schema_name;
 prompt .. Granting CREATE TYPE to &&l_schema_name
 grant create type to &&l_schema_name;
 
+prompt .. Granting CREATE SYNONYM to &&l_schema_name
+grant create synonym to &&l_schema_name;
+
+rem .. required by pete package
+prompt .. Granting CREATE SEQUENCE to &&l_schema_name
+grant create sequence to &&l_schema_name;
+
+rem .. required by pete package
+prompt .. Granting CREATE TABLE to &&l_schema_name
+grant create table to &&l_schema_name;
+
+rem .. required for debugging
 prompt .. Granting CREATE SESSION to &&l_schema_name
 grant create session to &&l_schema_name;
 
+rem .. required for debugging
 prompt .. Granting DEBUG CONNECT SESSION to &&l_schema_name
 grant debug connect session to &&l_schema_name;
 

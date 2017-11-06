@@ -16,7 +16,7 @@ CREATE OR REPLACE Type BODY plex_matchwhitespace AS
         END LOOP;
     
         IF l_Text IS NOT NULL THEN
-            RETURN NEW plex_token(plex_lexer.tk_WhiteSpace, l_Text);
+            RETURN NEW plex_token(plex.tk_WhiteSpace, l_Text);
         END IF;
     
         RETURN NULL;

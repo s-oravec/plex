@@ -21,7 +21,7 @@ CREATE OR REPLACE Type BODY plex_matchmultilinecomment AS
             plex_lexer.consume;
             plex_lexer.consume;
             l_Text := l_Text || '*/';
-            RETURN plex_token(plex_lexer.tk_multiLineComment, l_Text);
+            RETURN plex_token(plex.tk_multiLineComment, l_Text);
         ELSE
             RETURN NULL;
         END IF;

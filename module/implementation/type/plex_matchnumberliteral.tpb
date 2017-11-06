@@ -63,7 +63,7 @@ CREATE OR REPLACE Type BODY plex_matchnumberliteral AS
         END IF;
     
         IF l_Text IS NOT NULL THEN
-            RETURN NEW plex_token(plex_lexer.tk_NumberLiteral, l_Sign || l_Text);
+            RETURN NEW plex_token(plex.tk_NumberLiteral, l_Sign || l_Text);
         END IF;
     
         RETURN NULL;

@@ -9,7 +9,7 @@ CREATE OR REPLACE PACKAGE BODY plex_lexer AS
     g_source              CLOB;
     g_sourceTextLines     plex.source_lines_type;
 
-    Type typ_tableOfTokens IS TABLE OF TokenType;
+    Type typ_tableOfTokens IS TABLE OF plex.token_type;
     g_specialCharacterTokens typ_tableOfTokens;
     g_keywordTokens          typ_tableOfTokens;
 
@@ -179,26 +179,26 @@ CREATE OR REPLACE PACKAGE BODY plex_lexer AS
     ----------------------------------------------------------------------------
     FUNCTION isSpecialCharacter(p_character IN VARCHAR2) RETURN BOOLEAN IS
     BEGIN
-        RETURN p_character IN(tk_Asterix,
-                              tk_Colon,
-                              tk_Comma,
-                              -- tk_Dollar, - not special as it can be part of variableName
-                              tk_Dot,
-                              tk_Equals,
-                              tk_ExclamationMark,
-                              tk_GreaterThan,
-                              -- tk_Hash, - not special as it can be part of variableName
-                              tk_LessThan,
-                              tk_LParenth,
-                              tk_Minus,
-                              tk_Percent,
-                              tk_Pipe,
-                              tk_Plus,
-                              tk_Quote,
-                              tk_RParenth,
-                              tk_Semicolon,
-                              tk_Slash
-                              --, tk_Underscore  - not special as it can be part of variableName
+        -- plex.tk_Dollar, - not special as it can be part of variableName
+        -- plex.tk_Hash, - not special as it can be part of variableName
+        -- plex.tk_Underscore  - not special as it can be part of variableName
+        RETURN p_character IN(plex.tk_Asterix,
+                              plex.tk_Colon,
+                              plex.tk_Comma,
+                              plex.tk_Dot,
+                              plex.tk_Equals,
+                              plex.tk_ExclamationMark,
+                              plex.tk_GreaterThan,
+                              plex.tk_LessThan,
+                              plex.tk_LParenth,
+                              plex.tk_MinusChar,
+                              plex.tk_Percent,
+                              plex.tk_PipeChar,
+                              plex.tk_PlusChar,
+                              plex.tk_Quote,
+                              plex.tk_RParenth,
+                              plex.tk_Semicolon,
+                              plex.tk_Slash
                               );
     END;
 
@@ -207,7 +207,7 @@ CREATE OR REPLACE PACKAGE BODY plex_lexer AS
         l_result plex_token;
     BEGIN
         IF eof THEN
-            l_result := NEW plex_token(tk_EOF);
+            l_result := NEW plex_token(plex.tk_EOF);
         ELSE
             FOR matcherIdx IN 1 .. g_matchers.count LOOP
                 l_result := g_matchers(matcherIdx).isMatch();
@@ -222,9 +222,9 @@ CREATE OR REPLACE PACKAGE BODY plex_lexer AS
         l_result plex_token;
     BEGIN
         l_result := nextTokenImpl();
-        WHILE l_result IS NOT NULL AND l_result.tokenType != tk_EOF LOOP
+        WHILE l_result IS NOT NULL AND l_result.tokenType != plex.tk_EOF LOOP
             -- TODO: make this strip of whitespace/comments optional using parameter
-            IF l_result.tokenType NOT IN (tk_WhiteSpace, tk_SingleLineComment, tk_MultilineComment) THEN
+            IF l_result.tokenType NOT IN (plex.tk_WhiteSpace, plex.tk_SingleLineComment, plex.tk_MultilineComment) THEN
                 RETURN l_result;
             END IF;
             l_result := nextTokenImpl;
@@ -245,7 +245,7 @@ CREATE OR REPLACE PACKAGE BODY plex_lexer AS
         LOOP
             l_result.extend;
             l_result(l_result.count) := plex_lexer.nextToken;
-            EXIT WHEN l_result(l_result.count).tokenType = plex_lexer.tk_EOF;
+            EXIT WHEN l_result(l_result.count).tokenType = plex.tk_EOF;
         END LOOP;
         RETURN l_result;
     END;
@@ -254,23 +254,25 @@ BEGIN
     -- order is significant
     -- Assign has to be before Colon, as Colon is its prefix
     g_specialCharacterTokens := typ_tableOfTokens(
-        tk_Assign, tk_Asterix, tk_Colon, tk_Comma, tk_Dot, tk_Equals, tk_ExclamationMark,
-        tk_GreaterThan, tk_LessThan, tk_LParenth, tk_Minus, tk_Percent, tk_Pipe, tk_Plus,
-        tk_Quote, tk_RParenth, tk_Semicolon, tk_Slash
+        plex.tk_Assign, plex.tk_Asterix, plex.tk_Colon, plex.tk_Comma, plex.tk_Dot, plex.tk_Equals, plex.tk_ExclamationMark,
+        plex.tk_GreaterThan, plex.tk_LessThan, plex.tk_LParenth, plex.tk_MinusChar, plex.tk_Percent, plex.tk_PipeChar, plex.tk_PlusChar,
+        plex.tk_Quote, plex.tk_RParenth, plex.tk_Semicolon, plex.tk_Slash
     );
 
     g_keywordTokens := typ_tableOfTokens(
-        kw_ALL, kw_ALTER, kw_AND, kw_ANY, kw_AS, kw_ASC, kw_AT, kw_BEGIN, kw_BETWEEN, kw_BY,
-        kw_CASE, kw_CHECK, kw_CLUSTERS, kw_CLUSTER, kw_COLAUTH, kw_COLUMNS, kw_COMPRESS,
-        kw_CONNECT, kw_CRASH, kw_CREATE, kw_CURSOR, kw_DECLARE, kw_DEFAULT, kw_DESC,
-        kw_DISTINCT, kw_DROP, kw_ELSE, kw_END, kw_EXCEPTION, kw_EXCLUSIVE, kw_FETCH, kw_FOR,
-        kw_FROM, kw_FUNCTION, kw_GOTO, kw_GRANT, kw_GROUP, kw_HAVING, kw_IDENTIFIED, kw_IF,
-        kw_IN, kw_INDEX, kw_INDEXES, kw_INSERT, kw_INTERSECT, kw_INTO, kw_IS, kw_LIKE,
-        kw_LOCK, kw_MINUS, kw_MODE, kw_NOCOMPRESS, kw_NOT, kw_NOWAIT, kw_NULL, kw_OF, kw_ON,
-        kw_OPTION, kw_OR, kw_ORDER, kw_OVERLAPS, kw_PROCEDURE, kw_PUBLIC, kw_RESOURCE,
-        kw_REVOKE, kw_SELECT, kw_SHARE, kw_SIZE, kw_SQL, kw_START, kw_SUBTYPE, kw_TABAUTH,
-        kw_TABLE, kw_THEN, kw_TO, kw_TYPE, kw_UNION, kw_UNIQUE, kw_UPDATE, kw_VALUES,
-        kw_VIEW, kw_VIEWS, kw_WHEN, kw_WHERE, kw_WITH
+        plex.tk_ALL, plex.tk_ALTER, plex.tk_AND, plex.tk_ANY, plex.tk_AS, plex.tk_ASC, plex.tk_AT, plex.tk_BEGIN, plex.tk_BETWEEN, plex.tk_BY,
+        plex.tk_CASE, plex.tk_CHECK, plex.tk_CLUSTERS, plex.tk_CLUSTER, plex.tk_COLAUTH, plex.tk_COLUMNS, plex.tk_COMPRESS,
+        plex.tk_CONNECT, plex.tk_CRASH, plex.tk_CREATE, plex.tk_CURSOR, plex.tk_DECLARE, plex.tk_DEFAULT, plex.tk_DESC,
+        plex.tk_DISTINCT, plex.tk_DROP, plex.tk_ELSE, plex.tk_END, plex.tk_EXCEPTION, plex.tk_EXCLUSIVE, plex.tk_FETCH, plex.tk_FOR,
+        plex.tk_FROM, plex.tk_FUNCTION, plex.tk_GOTO, plex.tk_GRANT, plex.tk_GROUP, plex.tk_HAVING, plex.tk_IDENTIFIED, plex.tk_IF,
+        plex.tk_IN, plex.tk_INDEX, plex.tk_INDEXES, plex.tk_INSERT, plex.tk_INTERSECT, plex.tk_INTO, plex.tk_IS, plex.tk_LIKE,
+        plex.tk_LOCK,
+        --plex.tk_MINUS,
+         plex.tk_MODE, plex.tk_NOCOMPRESS, plex.tk_NOT, plex.tk_NOWAIT, plex.tk_NULL, plex.tk_OF, plex.tk_ON,
+        plex.tk_OPTION, plex.tk_OR, plex.tk_ORDER, plex.tk_OVERLAPS, plex.tk_PROCEDURE, plex.tk_PUBLIC, plex.tk_RESOURCE,
+        plex.tk_REVOKE, plex.tk_SELECT, plex.tk_SHARE, plex.tk_SIZE, plex.tk_SQL, plex.tk_START, plex.tk_SUBTYPE, plex.tk_TABAUTH,
+        plex.tk_TABLE, plex.tk_THEN, plex.tk_TO, plex.tk_TYPE, plex.tk_UNION, plex.tk_UNIQUE, plex.tk_UPDATE, plex.tk_VALUES,
+        plex.tk_VIEW, plex.tk_VIEWS, plex.tk_WHEN, plex.tk_WHERE, plex.tk_WITH
     );
 
 END plex_lexer;

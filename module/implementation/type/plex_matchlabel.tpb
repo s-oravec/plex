@@ -24,7 +24,7 @@ CREATE OR REPLACE Type BODY plex_matchLabel AS
         END IF;
     
         IF l_Text IS NOT NULL THEN
-            RETURN NEW plex_token(plex_lexer.tk_Label, l_Text);
+            RETURN NEW plex_token(plex.tk_Label, l_Text);
         END IF;
     
         RETURN NULL;

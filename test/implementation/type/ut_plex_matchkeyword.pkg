@@ -15,7 +15,7 @@ CREATE OR REPLACE PACKAGE BODY ut_plex_matchKeyword AS
     PROCEDURE keywordPrefixNotIngored(D VARCHAR2) IS
         l_Text         VARCHAR2(30) := '.Test';
         l_sourceLines  plex.source_lines_type := plex.source_lines_type(l_Text);
-        l_match        plex_matchKeyword := plex_matchKeyword(plex_lexer.tk_Dot, plex_lexer.tk_Dot);
+        l_match        plex_matchKeyword := plex_matchKeyword(plex.tk_Dot, plex.tk_Dot);
         l_matchWord    plex_matchWord := plex_matchWord();
         l_matchedToken plex_token;
     BEGIN
@@ -24,10 +24,10 @@ CREATE OR REPLACE PACKAGE BODY ut_plex_matchKeyword AS
         --
         l_matchedToken := l_match.isMatch;
         -- . is matched even as a prefix
-        pete_assert.eq(plex_lexer.tk_Dot, l_matchedToken.tokenType);
+        pete_assert.eq(plex.tk_Dot, l_matchedToken.tokenType);
         -- word Test is matched
         l_matchedToken := l_matchWord.isMatch;
-        pete_assert.eq(plex_lexer.tk_Word, l_matchedToken.tokenType);
+        pete_assert.eq(plex.tk_Word, l_matchedToken.tokenType);
         pete_assert.eq('Test', l_matchedToken.text);
         pete_assert.this(plex_lexer.eof);
     END;
@@ -36,7 +36,7 @@ CREATE OR REPLACE PACKAGE BODY ut_plex_matchKeyword AS
     PROCEDURE keywordPrefixIngored(D VARCHAR2) IS
         l_Text         VARCHAR2(30) := 'functionTest';
         l_sourceLines  plex.source_lines_type := plex.source_lines_type(l_Text);
-        l_match        plex_matchKeyword := plex_matchKeyword(plex_lexer.kw_FUNCTION, plex_lexer.kw_FUNCTION, 'N');
+        l_match        plex_matchKeyword := plex_matchKeyword(plex.tk_FUNCTION, plex.tk_FUNCTION, 'N');
         l_matchWord    plex_matchWord := plex_matchWord();
         l_matchedToken plex_token;
     BEGIN
@@ -48,7 +48,7 @@ CREATE OR REPLACE PACKAGE BODY ut_plex_matchKeyword AS
         pete_assert.this(l_matchedToken IS NULL);
         -- word functionTest is matched
         l_matchedToken := l_matchWord.isMatch;
-        pete_assert.eq(plex_lexer.tk_Word, l_matchedToken.tokenType);
+        pete_assert.eq(plex.tk_Word, l_matchedToken.tokenType);
         pete_assert.eq(l_Text, l_matchedToken.text);
         pete_assert.this(plex_lexer.eof);
     END;
@@ -57,7 +57,7 @@ CREATE OR REPLACE PACKAGE BODY ut_plex_matchKeyword AS
     PROCEDURE keywordPrefixIngored2(D VARCHAR2) IS
         l_Text         VARCHAR2(30) := 'function_Test';
         l_sourceLines  plex.source_lines_type := plex.source_lines_type(l_Text);
-        l_match        plex_matchKeyword := plex_matchKeyword(plex_lexer.kw_FUNCTION, plex_lexer.kw_FUNCTION, 'N');
+        l_match        plex_matchKeyword := plex_matchKeyword(plex.tk_FUNCTION, plex.tk_FUNCTION, 'N');
         l_matchWord    plex_matchWord := plex_matchWord();
         l_matchedToken plex_token;
     BEGIN
@@ -69,7 +69,7 @@ CREATE OR REPLACE PACKAGE BODY ut_plex_matchKeyword AS
         pete_assert.this(l_matchedToken IS NULL);
         -- word functionTest is matched
         l_matchedToken := l_matchWord.isMatch;
-        pete_assert.eq(plex_lexer.tk_Word, l_matchedToken.tokenType);
+        pete_assert.eq(plex.tk_Word, l_matchedToken.tokenType);
         pete_assert.eq(l_Text, l_matchedToken.text);
         pete_assert.this(plex_lexer.eof);
     END;
@@ -78,8 +78,8 @@ CREATE OR REPLACE PACKAGE BODY ut_plex_matchKeyword AS
     PROCEDURE keywordMatchIfDelimited(D VARCHAR2) IS
         l_Text            VARCHAR2(255) := 'function.funcTion FUNCtion';
         l_sourceLines     plex.source_lines_type := plex.source_lines_type(l_Text);
-        l_match           plex_matchKeyword := plex_matchKeyword(plex_lexer.kw_FUNCTION, plex_lexer.kw_FUNCTION, 'N');
-        l_matchDot        plex_matchKeyword := plex_matchKeyword(plex_lexer.tk_Dot, plex_lexer.tk_Dot);
+        l_match           plex_matchKeyword := plex_matchKeyword(plex.tk_FUNCTION, plex.tk_FUNCTION, 'N');
+        l_matchDot        plex_matchKeyword := plex_matchKeyword(plex.tk_Dot, plex.tk_Dot);
         l_matchWhiteSpace plex_matchWhiteSpace := plex_matchWhiteSpace();
         l_matchedToken    plex_token;
     BEGIN
@@ -87,22 +87,22 @@ CREATE OR REPLACE PACKAGE BODY ut_plex_matchKeyword AS
         plex_lexer.initialize(l_sourceLines);
         --
         l_matchedToken := l_match.isMatch;
-        pete_assert.eq(plex_lexer.kw_FUNCTION, l_matchedToken.tokenType);
+        pete_assert.eq(plex.tk_FUNCTION, l_matchedToken.tokenType);
         pete_assert.eq('function', l_matchedToken.text);
         --
         l_matchedToken := l_matchDot.isMatch;
-        pete_assert.eq(plex_lexer.tk_Dot, l_matchedToken.tokenType);
+        pete_assert.eq(plex.tk_Dot, l_matchedToken.tokenType);
         pete_assert.eq('.', l_matchedToken.text);
         --
         l_matchedToken := l_match.isMatch;
-        pete_assert.eq(plex_lexer.kw_FUNCTION, l_matchedToken.tokenType);
+        pete_assert.eq(plex.tk_FUNCTION, l_matchedToken.tokenType);
         pete_assert.eq('funcTion', l_matchedToken.text);
         --
         l_matchedToken := l_matchWhiteSpace.isMatch;
-        pete_assert.eq(plex_lexer.tk_WhiteSpace, l_matchedToken.tokenType);
+        pete_assert.eq(plex.tk_WhiteSpace, l_matchedToken.tokenType);
         --
         l_matchedToken := l_match.isMatch;
-        pete_assert.eq(plex_lexer.kw_FUNCTION, l_matchedToken.tokenType);
+        pete_assert.eq(plex.tk_FUNCTION, l_matchedToken.tokenType);
         pete_assert.eq('FUNCtion', l_matchedToken.text);
         --
         pete_assert.this(plex_lexer.eof);

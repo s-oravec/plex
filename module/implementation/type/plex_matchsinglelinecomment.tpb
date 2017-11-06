@@ -15,7 +15,7 @@ CREATE OR REPLACE Type BODY plex_matchsinglelinecomment AS
                 l_Text := l_Text || plex_lexer.currentItem;
                 plex_lexer.consume;
             END LOOP;
-            RETURN plex_token(plex_lexer.tk_SingleLineComment, l_Text);
+            RETURN plex_token(plex.tk_SingleLineComment, l_Text);
         ELSE
             RETURN NULL;
         END IF;

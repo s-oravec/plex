@@ -79,7 +79,7 @@ CREATE OR REPLACE Type BODY plex_matchtextliteral AS
         END IF;
         --
         IF length(l_Text) > 0 THEN
-            RETURN NEW plex_token(plex_lexer.tk_TextLiteral, l_nModifier || l_qModifier || l_Text);
+            RETURN NEW plex_token(plex.tk_TextLiteral, l_nModifier || l_qModifier || l_Text);
         ELSE
             RETURN NULL;
         END IF;

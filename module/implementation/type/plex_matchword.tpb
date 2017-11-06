@@ -19,7 +19,7 @@ CREATE OR REPLACE Type BODY plex_matchword AS
                 plex_lexer.consume;
             END LOOP;
             --
-            RETURN NEW plex_token(plex_lexer.tk_Word, l_Text);
+            RETURN NEW plex_token(plex.tk_Word, l_Text);
             --
         ELSIF plex_lexer.currentItem = '"' THEN
             l_Text := plex_lexer.currentItem;
@@ -33,7 +33,7 @@ CREATE OR REPLACE Type BODY plex_matchword AS
             l_Text := l_text || plex_lexer.currentItem;
             plex_lexer.consume;
             --
-            RETURN NEW plex_token(plex_lexer.tk_Word, l_Text);
+            RETURN NEW plex_token(plex.tk_Word, l_Text);
         ELSE
             RETURN NULL;
         END IF;
