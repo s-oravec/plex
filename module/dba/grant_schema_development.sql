@@ -20,6 +20,10 @@ rem .. required by pete package
 prompt .. Granting CREATE TABLE to &&l_schema_name
 grant create table to &&l_schema_name;
 
+rem .. required by pete package
+prompt .. Granting CREATE VIEW to &&l_schema_name
+grant create view to &&l_schema_name;
+
 rem .. required for debugging
 prompt .. Granting CREATE SESSION to &&l_schema_name
 grant create session to &&l_schema_name;

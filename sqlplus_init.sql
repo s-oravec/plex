@@ -4,6 +4,7 @@ prompt .. Ensuring that SQL*Plus ErrorLog table exists
 
 set errorlogging off
 set feedback off
+set termout off
 
 create table &&_user..sqlplus_log (
     username   varchar(256),
@@ -13,7 +14,7 @@ create table &&_user..sqlplus_log (
     message    clob,
     statement  clob
 );
-
+set termout on
 grant select on &&_user..sqlplus_log to public;
 
 column g_run_identifier new_value g_run_identifier
