@@ -124,20 +124,20 @@ When you want to use **plex** from other schemas, you have basically 2 options
 
 These scripts will help you with latter, by either creating or dropping synonyms for **plex** package API in that schema.
 
-### set_dependency_ref_owner
+### create_synonyms
 
 Creates depenency from reference owner.
 
 ```
 SQL> conn <some_schema>
-SQL> @set_dependency_ref_owner  <schema_where_plex_is_installed>
+SQL> @create_synonyms  <schema_where_plex_is_installed>
 ```
 
-### unset_dependency_ref_owner
+### uncreate_synonyms
 
 Removes depenency from reference owner.
 
 ```
 SQL> conn <some_schema>
-SQL> @unset_dependency_ref_owner  <schema_where_plex_is_installed>
+SQL> @uncreate_synonyms  <schema_where_plex_is_installed>
 ```
