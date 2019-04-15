@@ -14,7 +14,7 @@ define l_schema_name = "&1"
 rem Load package
 @@package.sql
 
-prompt Drop synonyms in &&_USER schema for API objects &&g_package_name package installed in &&l_schema_name schema
+prompt Drop synonyms in &&g_current_schema schema for API objects of &&g_package_name package installed in &&l_schema_name schema
 @module/api/drop_synonyms.sql
 
 rem undefine locals

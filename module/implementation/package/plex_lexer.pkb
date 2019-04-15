@@ -186,6 +186,7 @@ CREATE OR REPLACE PACKAGE BODY plex_lexer AS
                               plex.tk_Colon,
                               plex.tk_Comma,
                               plex.tk_Dot,
+                              plex.tk_Dollar,
                               plex.tk_Equals,
                               plex.tk_ExclamationMark,
                               plex.tk_GreaterThan,
@@ -254,7 +255,7 @@ BEGIN
     -- order is significant
     -- Assign has to be before Colon, as Colon is its prefix
     g_specialCharacterTokens := typ_tableOfTokens(
-        plex.tk_Assign, plex.tk_Asterix, plex.tk_Colon, plex.tk_Comma, plex.tk_Dot, plex.tk_Equals, plex.tk_ExclamationMark,
+        plex.tk_Assign, plex.tk_Asterix, plex.tk_Colon, plex.tk_Comma, plex.tk_Dot, plex.tk_Dollar, plex.tk_Equals, plex.tk_ExclamationMark,
         plex.tk_GreaterThan, plex.tk_LessThan, plex.tk_LParenth, plex.tk_MinusChar, plex.tk_Percent, plex.tk_PipeChar, plex.tk_PlusChar,
         plex.tk_Quote, plex.tk_RParenth, plex.tk_Semicolon, plex.tk_Slash
     );

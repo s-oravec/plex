@@ -143,6 +143,7 @@ create or replace package plex as
     tk_SingleLineComment CONSTANT token_type := '<SingleLineComment>';
     tk_MultiLineComment  CONSTANT token_type := '<MultiLineComment>';
     tk_Word              CONSTANT token_type := '<Word>';
+    -- TODO: move this to parser
     tk_Label             CONSTANT token_type := '<Label>';
 
     /**
