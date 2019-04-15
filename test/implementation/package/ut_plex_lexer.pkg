@@ -1,161 +1,153 @@
 CREATE OR REPLACE PACKAGE ut_plex_lexer AS
 
-    Description CONSTANT pete_types.typ_description := 'plex_lexer';
+    --%suitepath(plex)
+    --%suite(plex_lexer)
+    
+    --%test(initialize works with empty)
+    PROCEDURE initializeWorksWithEmpty;
+    
+    --%test(initialize works with non empty)
+    PROCEDURE initializeWorksWithNonEmpty;
 
-    PROCEDURE initializeWorksWithEmpty(D VARCHAR2 := 'initialize works with empty');
-    PROCEDURE initializeWorksWithNonEmpty(D VARCHAR2 := 'initialize works with non empty');
+    --%test(currentItem and consume works)
+    PROCEDURE currentAndConsumeItemWorks;
 
-    PROCEDURE currentAndConsumeItemWorks(D VARCHAR2 := 'currentItem and consume works');
-
-    PROCEDURE rlbckWOSnapshotThrows(D VARCHAR2 := 'rollback without takeSnapshot throws');
-    PROCEDURE commitWOSnapshotThrows(D VARCHAR2 := 'commit without takeSnapshot throws');
-    PROCEDURE commitAfterSnapWorks(D VARCHAR2 := 'commit after takeSnapshot works');
-    PROCEDURE rollbackAfterSnapWorks(D VARCHAR2 := 'rollback after takeSnapshot works');
+    --%test(rollback without takeSnapshot throws)
+    --%throws(-20000)
+    PROCEDURE rlbckWOSnapshotThrows;
+    
+    --%test(commit without takeSnapshot throws)
+    --%throws(-20000)
+    PROCEDURE commitWOSnapshotThrows;
+    
+    --%test(commit after takeSnapshot throws)
+    --%throws(-20000)
+    PROCEDURE commitAfterSnapWorks;
+    
+    --%test(rollback after takeSnapshot throws)
+    --%throws(-20000)
+    PROCEDURE rollbackAfterSnapWorks;
 
 END;
 /
 CREATE OR REPLACE PACKAGE BODY ut_plex_lexer AS
 
     ----------------------------------------------------------------------------
-    PROCEDURE initializeWorksWithEmpty(D VARCHAR2) IS
+    PROCEDURE initializeWorksWithEmpty IS
         l_sourceLines plex.source_lines_type := plex.source_lines_type();
     BEGIN
-        pete.set_method_description(D);
-        -- prepare
+        -- Test
         plex_lexer.initialize(p_source_lines => l_sourceLines);
         --
-        pete_assert.is_null(plex_lexer.currentItem);
-        pete_assert.eq(1, plex_lexer.getIndex);
-        pete_assert.this(plex_lexer.eof);
-        pete_assert.is_null(plex_lexer.peek(1));
+        -- Expectations
+        ut.expect(plex_lexer.currentItem).to_be_null();
+        ut.expect(plex_lexer.getIndex).to_equal(1);
+        --TODO:ut.expect(plex_lexer.eof).to_be_empty();  -- pete_assert.this(plex_lexer.eof);
+        ut.expect(plex_lexer.peek(1)).to_be_null();
     END;
 
     ----------------------------------------------------------------------------
-    PROCEDURE initializeWorksWithNonEmpty(D VARCHAR2) IS
+    PROCEDURE initializeWorksWithNonEmpty IS
         l_sourceLines plex.source_lines_type := plex.source_lines_type('foo' || chr(10), 'bar'|| chr(10), 'baz'|| chr(10));
     BEGIN
-        pete.set_method_description(D);
-        -- prepare
+        -- Test
         plex_lexer.initialize(p_source_lines => l_sourceLines);
         --
-        pete_assert.eq('f', plex_lexer.currentItem);
-        pete_assert.this(NOT plex_lexer.eof);
-        pete_assert.eq('o', plex_lexer.peek(1));
-        pete_assert.eq('o', plex_lexer.peek(2));
-        pete_assert.eq(chr(10), plex_lexer.peek(3));
-        pete_assert.eq('b', plex_lexer.peek(4));
-        pete_assert.eq('a', plex_lexer.peek(5));
-        pete_assert.eq('r', plex_lexer.peek(6));
-        pete_assert.eq(chr(10), plex_lexer.peek(7));
-        pete_assert.eq('b', plex_lexer.peek(8));
-        pete_assert.eq('a', plex_lexer.peek(9));
-        pete_assert.eq('z', plex_lexer.peek(10));
-        pete_assert.eq(chr(10), plex_lexer.peek(11));
-        pete_assert.is_null(plex_lexer.peek(12));
+        -- Expectations
+        ut.expect(plex_lexer.currentItem).to_equal('f');
+        ut.expect(plex_lexer.eof).to_be_false(); -- pete_assert.this(NOT plex_lexer.eof);
+        ut.expect(plex_lexer.peek(1)).to_equal('o');
+        ut.expect(plex_lexer.peek(2)).to_equal('o');
+        ut.expect(plex_lexer.peek(3)).to_equal(chr(10));
+        ut.expect(plex_lexer.peek(4)).to_equal('b');
+        ut.expect(plex_lexer.peek(5)).to_equal('a');
+        ut.expect(plex_lexer.peek(6)).to_equal('r');
+        ut.expect(plex_lexer.peek(7)).to_equal(chr(10));
+        ut.expect(plex_lexer.peek(8)).to_equal('b');
+        ut.expect(plex_lexer.peek(9)).to_equal('a');
+        ut.expect(plex_lexer.peek(10)).to_equal('z');
+        ut.expect(plex_lexer.peek(11)).to_equal(chr(10));
+        ut.expect(plex_lexer.peek(12)).to_be_null();
     END;
 
     ----------------------------------------------------------------------------
-    PROCEDURE currentAndConsumeItemWorks(D VARCHAR2) IS
+    PROCEDURE currentAndConsumeItemWorks IS
         l_sourceLines plex.source_lines_type := plex.source_lines_type('foo'|| chr(10), 'bar'|| chr(10), 'baz'|| chr(10));
     BEGIN
-        pete.set_method_description(D);
-        -- prepare
+        -- Prepare Test
         plex_lexer.initialize(p_source_lines => l_sourceLines);
         --
-        pete_assert.eq('f', plex_lexer.currentItem);
-        pete_assert.eq(1, plex_lexer.getIndex);
+        -- Expectations
+        ut.expect(plex_lexer.currentItem, 'CurrentItem is ''f''').to_equal('f');
+        ut.expect(plex_lexer.getIndex, 'Index is 1').to_equal(1);
+        -- Test
         plex_lexer.consume;
-        pete_assert.eq(2, plex_lexer.getIndex);
-        pete_assert.eq('o', plex_lexer.currentItem);
+        --
+        -- Expectations
+        ut.expect(plex_lexer.currentItem, 'CurrentItem is ''o''').to_equal('o');
+        ut.expect(plex_lexer.getIndex, 'Index is 2').to_equal(2);
     END;
 
     ----------------------------------------------------------------------------
-    PROCEDURE rlbckWOSnapshotThrows(D VARCHAR2) IS
-        l_thrown      BOOLEAN := FALSE;
+    PROCEDURE rlbckWOSnapshotThrows IS
         l_sourceLines plex.source_lines_type := plex.source_lines_type('foo'|| chr(10), 'bar'|| chr(10), 'baz'|| chr(10));
     BEGIN
-        pete.set_method_description(D);
         -- prepare
         plex_lexer.initialize(p_source_lines => l_sourceLines);
         --
-        BEGIN
-            plex_lexer.rollbackSnapshot;
-        EXCEPTION
-            WHEN OTHERS THEN
-                l_thrown := TRUE;
-        END;
+        -- TEST
+        plex_lexer.rollbackSnapshot;
         --
-        pete_assert.this(l_thrown, 'plex_lexer.rollbackSnapshot should have thrown.');
     END;
 
     ----------------------------------------------------------------------------
-    PROCEDURE commitWOSnapshotThrows(D VARCHAR2) IS
-        l_thrown      BOOLEAN := FALSE;
+    PROCEDURE commitWOSnapshotThrows IS
         l_sourceLines plex.source_lines_type := plex.source_lines_type('foo'|| chr(10), 'bar'|| chr(10), 'baz'|| chr(10));
     BEGIN
-        pete.set_method_description(D);
         -- prepare
         plex_lexer.initialize(p_source_lines => l_sourceLines);
         --
-        BEGIN
-            plex_lexer.commitSnapshot;
-        EXCEPTION
-            WHEN OTHERS THEN
-                l_thrown := TRUE;
-        END;
+        -- TEST
+        plex_lexer.commitSnapshot;
         --
-        pete_assert.this(l_thrown, 'plex_lexer.commitSnapshot should have thrown.');
     END;
 
     ----------------------------------------------------------------------------
-    PROCEDURE commitAfterSnapWorks(D VARCHAR2) IS
-        l_thrown      BOOLEAN := FALSE;
+    PROCEDURE commitAfterSnapWorks IS
         l_sourceLines plex.source_lines_type := plex.source_lines_type('foo'|| chr(10), 'bar'|| chr(10), 'baz'|| chr(10));
     BEGIN
-        pete.set_method_description(D);
         -- prepare
         plex_lexer.initialize(p_source_lines => l_sourceLines);
         --
+        -- TEST
         plex_lexer.takeSnapshot;
         plex_lexer.consume;
         plex_lexer.commitSnapshot;
         -- consecutive rollback throws as stack is empty
-        BEGIN
-            plex_lexer.rollbackSnapshot;
-        EXCEPTION
-            WHEN OTHERS THEN
-                l_thrown := TRUE;
-        END;
+        plex_lexer.rollbackSnapshot;
         --
-        pete_assert.this(l_thrown, 'plex_lexer.rollbackSnapshot should have thrown.');
     END;
 
     ----------------------------------------------------------------------------
-    PROCEDURE rollbackAfterSnapWorks(D VARCHAR2) IS
-        l_thrown      BOOLEAN := FALSE;
+    PROCEDURE rollbackAfterSnapWorks IS
         l_sourceLines plex.source_lines_type := plex.source_lines_type('foo'|| chr(10), 'bar'|| chr(10), 'baz'|| chr(10));
         l_indexBefore PLS_INTEGER;
     BEGIN
-        pete.set_method_description(D);
         -- prepare
         plex_lexer.initialize(p_source_lines => l_sourceLines);
         --
+        -- TEST
         plex_lexer.takeSnapshot;
         l_indexBefore := plex_lexer.getIndex;
         plex_lexer.consume;
         plex_lexer.consume;
         plex_lexer.rollbackSnapshot;
-        -- indexe is restored to before take snapshot
-        pete_assert.eq(l_indexBefore, plex_lexer.getIndex);
+        -- 
+        -- Expectations
+        ut.expect(plex_lexer.getIndex,'indexe is restored to before take snapshot').to_equal(l_indexBefore);
         -- consecutive rollback throws as stack is empty
-        BEGIN
-            plex_lexer.commitSnapshot;
-        EXCEPTION
-            WHEN OTHERS THEN
-                l_thrown := TRUE;
-        END;
+        plex_lexer.commitSnapshot;
         --
-        pete_assert.this(l_thrown, 'plex_lexer.commitSnapshot should have thrown.');
     END;
 
 END;

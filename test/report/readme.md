@@ -1,0 +1,1 @@
+placeholder for junit and coverage reports 

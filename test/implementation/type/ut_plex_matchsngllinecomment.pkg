@@ -1,89 +1,121 @@
 CREATE OR REPLACE PACKAGE ut_plex_matchSnglLineComment AS
 
-    Description CONSTANT pete_types.typ_description := 'plex_matchSingleLineComment';
+    --%suitepath(plex)
+    --%suite(plex_matchSingleLineComment)
 
-    PROCEDURE matchToTheEOL(D VARCHAR2 := 'matches until the end of line');
-    PROCEDURE matchAsOne(D VARCHAR2 := 'does not match again within other single line comment');
-    PROCEDURE notMatchWithinMultilineComment(D VARCHAR2 := 'does not match within multiline comment');
-    PROCEDURE notMatchWithinTextLiteral(D VARCHAR2 := 'does not match within text literal');
+    --%test(matches until the end of line)
+    PROCEDURE matchToTheEOL;
+    
+    --%test(does not match again within other single line comment)
+    PROCEDURE matchAsOne;
+    
+    --%test(does not match within multiline comment)
+    PROCEDURE notMatchWithinMultilineComment;
+    
+    --%test(does not match within text literal)
+    PROCEDURE notMatchWithinTextLiteral;
 
 END;
 /
 CREATE OR REPLACE PACKAGE BODY ut_plex_matchSnglLineComment AS
 
     ----------------------------------------------------------------------------
-    PROCEDURE matchToTheEOL(D VARCHAR2) IS
+    PROCEDURE matchToTheEOL IS
         l_Text            VARCHAR2(30) := '-- single line comment';
         l_sourceLines     plex.source_lines_type := plex.source_lines_type(l_Text || chr(10));
         l_match           plex_matchSinglelineComment := plex_matchSinglelineComment();
         l_matchWhiteSpace plex_matchWhiteSpace := plex_matchWhiteSpace();
         l_matchedToken    plex_token;
     BEGIN
-        pete.set_method_description(D);
-        plex_lexer.initialize(l_sourceLines);
+        -- Prepare
+        plex_lexer.initialize(p_source_lines => l_sourceLines);
+        --
+        -- Test
         l_matchedToken := l_match.isMatch;
-        pete_assert.eq(plex.tk_SinglelineComment, l_matchedToken.tokenType);
-        pete_assert.eq(l_Text, l_matchedToken.text);
-        -- match chr(10) at the end of line
+        --
+        -- Expectations
+        ut.expect(l_matchedToken.tokenType).to_equal(plex.tk_SinglelineComment);
+        ut.expect(l_matchedToken.text).to_equal(l_Text);
+        -- Continue Test - match chr(10) at the end of line
         l_matchedToken := l_matchWhiteSpace.isMatch;
-        pete_assert.eq(plex.tk_WhiteSpace, l_matchedToken.tokenType);
-        -- EOF is what has left
-        pete_assert.this(plex_lexer.eof);
+        --
+        -- Expectations
+        ut.expect(l_matchedToken.tokenType).to_equal(plex.tk_WhiteSpace);
+        ut.expect(plex_lexer.eof,'EOF is what has left').to_be_true();
     END;
 
     ----------------------------------------------------------------------------
-    PROCEDURE matchAsOne(D VARCHAR2) IS
+    PROCEDURE matchAsOne IS
         l_Text         VARCHAR2(30) := '-- single --line comment';
         l_sourceLines  plex.source_lines_type := plex.source_lines_type(l_Text);
         l_match        plex_matchSinglelineComment := plex_matchSinglelineComment();
         l_matchedToken plex_token;
     BEGIN
-        pete.set_method_description(D);
-        plex_lexer.initialize(l_sourceLines);
+        -- Prepare
+        plex_lexer.initialize(p_source_lines => l_sourceLines);
+        --
+        -- Test
         l_matchedToken := l_match.isMatch;
-        pete_assert.eq(plex.tk_SinglelineComment, l_matchedToken.tokenType);
-        pete_assert.eq(l_Text, l_matchedToken.text);
-        -- EOF is what has left
-        pete_assert.this(plex_lexer.eof);
+        --
+        -- Expectations
+        ut.expect(l_matchedToken.tokenType).to_equal(plex.tk_SinglelineComment);
+        ut.expect(l_matchedToken.text).to_equal(l_Text);
+        ut.expect(plex_lexer.eof,'EOF is what has left').to_be_true();
     END;
 
     ----------------------------------------------------------------------------
-    PROCEDURE notMatchWithinMultilineComment(D VARCHAR2) IS
+    PROCEDURE notMatchWithinMultilineComment IS
         l_Text           VARCHAR2(30) := '/*' || chr(10) || '-- tradaa' || chr(10) || '*/';
         l_sourceLines    plex.source_lines_type := plex.source_lines_type('/*' || chr(10), '-- tradaa' || chr(10), '*/');
         l_match          plex_matchSinglelineComment := plex_matchSinglelineComment();
         l_matchMultiline plex_matchMultilineComment := plex_matchMultilineComment();
         l_matchedToken   plex_token;
+        l_pom            integer;
     BEGIN
-        pete.set_method_description(D);
-        plex_lexer.initialize(l_sourceLines);
+        -- Prepare
+        plex_lexer.initialize(p_source_lines => l_sourceLines);
+        --
+        -- Test
         -- try to match single line comment
         l_matchedToken := l_match.isMatch;
-        pete_assert.this(l_matchedToken IS NULL);
-        -- confirm that it is matched as multiline comment
+        --
+        -- Expectations
+        l_pom := case when l_matchedToken is null then null else 1 end;
+        ut.expect(l_pom).to_be_null();
+        -- Continue Test confirm that it is matched as multiline comment
         l_matchedToken := l_matchMultiline.isMatch;
-        pete_assert.eq(plex.tk_MultilineComment, l_matchedToken.tokenType);
-        pete_assert.eq(l_Text, l_matchedToken.text);
-        pete_assert.this(plex_lexer.eof);
+        --
+        -- Expectations
+        ut.expect(l_matchedToken.tokenType).to_equal(plex.tk_MultilineComment);
+        ut.expect(l_matchedToken.text).to_equal(l_Text);
+        ut.expect(plex_lexer.eof,'EOF is what has left').to_be_true();
     END;
 
     ----------------------------------------------------------------------------
-    PROCEDURE notMatchWithinTextLiteral(D VARCHAR2) IS
+    PROCEDURE notMatchWithinTextLiteral IS
         l_Text             VARCHAR2(255) := q'['some string with single line comment inside -- comment']';
         l_sourceLines      plex.source_lines_type := plex.source_lines_type(l_Text);
         l_match            plex_matchSinglelineComment := plex_matchSinglelineComment();
         l_matchTextLiteral plex_matchTextLiteral := plex_matchTextLiteral();
         l_matchedToken     plex_token;
+        l_pom              integer;
     BEGIN
-        pete.set_method_description(D);
-        plex_lexer.initialize(l_sourceLines);
+        -- Prepare
+        plex_lexer.initialize(p_source_lines => l_sourceLines);
+        --
+        -- Test
         l_matchedToken := l_match.isMatch;
-        pete_assert.this(l_matchedToken IS NULL);
+        --
+        -- Expectations
+        l_pom := case when l_matchedToken is null then null else 1 end;
+        ut.expect(l_pom).to_be_null();
+        -- Continue Test 
         l_matchedToken := l_matchTextLiteral.isMatch;
-        pete_assert.eq(plex.tk_TextLiteral, l_matchedToken.tokenType);
-        pete_assert.eq(l_Text, l_matchedToken.text);
-        -- EOF is what has left
-        pete_assert.this(plex_lexer.eof);
+        --
+        -- Expectations
+        ut.expect(l_matchedToken.tokenType).to_equal(plex.tk_TextLiteral);
+        ut.expect(l_matchedToken.text).to_equal(l_Text);
+        ut.expect(plex_lexer.eof,'EOF is what has left').to_be_true();
     END;
 
 END;

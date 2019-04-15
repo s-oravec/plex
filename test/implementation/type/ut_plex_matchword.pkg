@@ -1,63 +1,121 @@
-CREATE OR REPLACE PACKAGE ut_plex_matchWord AS
+create or replace package ut_plex_matchWord as
 
-    Description CONSTANT pete_types.typ_description := 'plex_matchWord';
+    --%suitepath(plex)
+    --%suite(plex_matchWord)
 
-    PROCEDURE delimited(D VARCHAR2 := 'matches word delimited by special characters, whitespace or EOF');
-    PROCEDURE enquoted(D VARCHAR2 := 'matches word enquoted by "');
+    --%test(matches word delimited by special characters, whitespace or EOF)
+    procedure delimited;
 
-END;
+    --%test(matches word enquoted by ")
+    procedure enquoted;
+
+    --%test(dollar at the beginning of word is lexed as dollar)
+    procedure dollar_at_the_beginning;
+
+    --%test(dollar in the middle of word is lexed as part of that word)
+    procedure dollar_in_the_middle;
+
+end;
 /
-CREATE OR REPLACE PACKAGE BODY ut_plex_matchWord AS
+create or replace package body ut_plex_matchWord as
 
     ----------------------------------------------------------------------------
-    PROCEDURE delimited(D VARCHAR2) IS
-        l_Text            VARCHAR2(255) := 'delimitedBySpecial.delimitedByWhiteSpace delimitedByEOF';
-        l_sourceLines     plex.source_lines_type := plex.source_lines_type(l_Text);
-        l_match           plex_matchWord := plex_matchWord();
-        l_matchWhiteSpace plex_matchWhiteSpace := plex_matchWhiteSpace();
-        l_matchDot        plex_matchKeyword := plex_matchKeyword(plex.tk_Dot, plex.tk_Dot);
-        l_matchedToken    plex_token;
-    BEGIN
-        pete.set_method_description(D);
-        plex_lexer.initialize(l_sourceLines);
+    procedure delimited is
+        l_Text varchar2(255) := 'delimitedBySpecial.delimitedByWhiteSpace delimitedByEOF';
+        l_sourceLines plex.source_lines_type := plex.source_lines_type(l_Text);
+        l_match plex_matchword := plex_matchWord();
+        l_matchWhiteSpace plex_matchwhitespace := plex_matchWhiteSpace();
+        l_matchDot plex_matchkeyword := plex_matchKeyword(plex.tk_Dot, plex.tk_Dot);
+        l_matchedToken plex_token;
+    begin
+        -- Prepare
+        plex_lexer.initialize(p_source_lines => l_sourceLines);
         --
+        -- Test
         l_matchedToken := l_match.isMatch;
-        pete_assert.eq(plex.tk_Word, l_matchedToken.tokenType);
-        pete_assert.eq('delimitedBySpecial', l_matchedToken.text);
+        --
+        -- Expectations
+        ut.expect(l_matchedToken.tokenType).to_equal(plex.tk_Word);
+        ut.expect(l_matchedToken.text).to_equal('delimitedBySpecial');
         --
         l_matchedToken := l_matchDot.isMatch;
-        pete_assert.eq(plex.tk_Dot, l_matchedToken.tokenType);
-        pete_assert.eq('.', l_matchedToken.text);
         --
+        -- Expectations
+        ut.expect(l_matchedToken.tokenType).to_equal(plex.tk_Dot);
+        ut.expect(l_matchedToken.text).to_equal('.');
+        --
+        -- Continue Test
         l_matchedToken := l_match.isMatch;
-        pete_assert.eq(plex.tk_Word, l_matchedToken.tokenType);
-        pete_assert.eq('delimitedByWhiteSpace', l_matchedToken.text);
         --
+        -- Expectations
+        ut.expect(l_matchedToken.tokenType).to_equal(plex.tk_Word);
+        ut.expect(l_matchedToken.text).to_equal('delimitedByWhiteSpace');
+        --
+        -- Continue Test
         l_matchedToken := l_matchWhiteSpace.isMatch;
-        pete_assert.eq(plex.tk_WhiteSpace, l_matchedToken.tokenType);
         --
+        -- Expectations
+        ut.expect(l_matchedToken.tokenType).to_equal(plex.tk_WhiteSpace);
+        --
+        -- Continue Test
         l_matchedToken := l_match.isMatch;
-        pete_assert.eq(plex.tk_Word, l_matchedToken.tokenType);
-        pete_assert.eq('delimitedByEOF', l_matchedToken.text);
         --
-        pete_assert.this(plex_lexer.eof);
-    END;
-    ----------------------------------------------------------------------------
-    PROCEDURE enquoted(D VARCHAR2 := 'matches word enquoted by "') IS
-        l_Text         VARCHAR2(255) := q'["w=o%r'd"]';
-        l_sourceLines  plex.source_lines_type := plex.source_lines_type(l_Text);
-        l_match        plex_matchWord := plex_matchWord();
-        l_matchedToken plex_token;
-    BEGIN
-        pete.set_method_description(D);
-        plex_lexer.initialize(l_sourceLines);
+        -- Expectations
+        ut.expect(l_matchedToken.tokenType).to_equal(plex.tk_Word);
+        ut.expect(l_matchedToken.text).to_equal('delimitedByEOF');
         --
-        l_matchedToken := l_match.isMatch;
-        pete_assert.eq(plex.tk_Word, l_matchedToken.tokenType);
-        pete_assert.eq(l_Text, l_matchedToken.text);
-        --
-        pete_assert.this(plex_lexer.eof);
-    END;
+        ut.expect(plex_lexer.eof, 'only EOF is left').to_be_true();
+    end;
 
-END;
+    ----------------------------------------------------------------------------
+    procedure enquoted is
+        l_Text varchar2(255) := q'["w=o%r'd"]';
+        l_sourceLines plex.source_lines_type := plex.source_lines_type(l_Text);
+        l_match plex_matchword := plex_matchWord();
+        l_matchedToken plex_token;
+    begin
+        -- Prepare
+        plex_lexer.initialize(p_source_lines => l_sourceLines);
+        --
+        -- Test
+        l_matchedToken := l_match.isMatch;
+        --
+        -- Expectations
+        ut.expect(l_matchedToken.tokenType).to_equal(plex.tk_Word);
+        ut.expect(l_matchedToken.text).to_equal(l_Text);
+        --
+        ut.expect(plex_lexer.eof, 'only EOF is left').to_be_true();
+    end;
+
+    ----------------------------------------------------------------------------
+    procedure dollar_at_the_beginning is
+        l_sourceLines plex.source_lines_type := plex.source_lines_type('$test');
+        l_tokens plex_tokens;
+    begin
+        -- Prepare
+        plex_lexer.initialize(p_source_lines => l_sourceLines);
+        l_tokens := plex_lexer.tokens;
+        --
+        ut.expect(l_tokens.count).to_equal(3);
+        ut.expect(l_tokens(1).tokenType).to_equal(plex.tk_Dollar);
+        ut.expect(l_tokens(2).tokenType).to_equal(plex.tk_Word);
+        ut.expect(l_tokens(3).tokenType).to_equal(plex.tk_EOF);
+    end;
+
+    ----------------------------------------------------------------------------
+    procedure dollar_in_the_middle is
+        l_sourceLines plex.source_lines_type := plex.source_lines_type('$te$st');
+        l_tokens plex_tokens;
+    begin
+        -- Prepare
+        plex_lexer.initialize(p_source_lines => l_sourceLines);
+        l_tokens := plex_lexer.tokens;
+        --
+        ut.expect(l_tokens.count).to_equal(3);
+        ut.expect(l_tokens(1).tokenType).to_equal(plex.tk_Dollar);
+        ut.expect(l_tokens(2).tokenType).to_equal(plex.tk_Word);
+        ut.expect(l_tokens(3).tokenType).to_equal(plex.tk_EOF);
+    end;
+
+end;
 /
